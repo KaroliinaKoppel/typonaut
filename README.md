@@ -1,6 +1,6 @@
-#Typonaut
+# Typonaut
 
-Install:
-    1. npm install
-    2. npm start
-    3. localhost:3000
+## Install:
+1. ```npm install```
+2. ```npm start```
+3. http://localhost:3000
