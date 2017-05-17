@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+    <title>Typonaut</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="controllers.js"></script>
+    <style>
+        .highlighted { background: yellow }
+        .snackbar {
+            min-width: 50px;
+            margin-left: -50px;
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            top: 100px;
+            font-size: 17px;
+            opacity: 0.8;
+        }
+
+        .snackbar.success {
+            background-color: #5cb85c;
+            color: #fff;
+        }
+
+        .snackbar.fail {
+            background-color: #d9534f;
+            color: #fff;
+        }
+
+        .snackbar.show {
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @-webkit-keyframes fadein {
+            from {top: 50px; opacity: 0;}
+            to {top: 100px; opacity: 0.8;}
+        }
+
+        @keyframes fadein {
+            from {top: 50px; opacity: 0;}
+            to {top: 100px; opacity: 0.8;}
+        }
+
+        @-webkit-keyframes fadeout {
+            from {top: 100px; opacity: 0.8;}
+            to {top: 50px; opacity: 0;}
+        }
+
+        @keyframes fadeout {
+            from {top: 100px; opacity: 0.8;}
+            to {top: 50px; opacity: 0;}
+        }
+
+        #word {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body ng-app="typonaut" ng-controller="AppController">
+
+<div class="container" align="center">
+    <h1 style="margin-top: 50px; margin-bottom: 50px; font-family: Georgia; font-size: 50px">
+        Typonaut
+    </h1>
+
+    <div ng-show="isCurrentView(1)">
+        <h3 style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'">
+            Enter your name:
+        </h3>
+        <div class="col-sm-offset-4 col-sm-4">
+            <input class="form-control text-center" style="text-transform: uppercase;" type="text" ng-model="playerName" ng-keydown="$event.keyCode === 13 && setPlayerName()" />
+        </div>
+    </div>
+    <div ng-show="isCurrentView(2)">
+        <h3 style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'">
+            Waiting for other player
+        </h3>
+    </div>
+    <div ng-show="isCurrentView(3)">
+        <h2 style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'">
+            Game is about to start.
+        </h2>
+        <h4 style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'">
+            <strong>You: </strong>{{playerName}}&emsp;<strong>Opponent: </strong>{{otherPlayerName}}
+        </h4>
+        <span style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'; font-size: 100px;">
+            {{counter}}
+        </span>
+    </div>
+    <div ng-show="isCurrentView(4)">
+        <h2 id="word" style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'" ng-bind-html="randomWord | highlight:wordBeingTyped"></h2>
+        <div class="col-sm-offset-4 col-sm-4">
+            <input class="form-control text-center" style="text-transform: uppercase;" type="text" ng-model="wordBeingTyped" />
+        </div>
+    </div>
+    <div ng-show="isCurrentView(5)">
+        <h2 style="text-transform: uppercase; margin-top: 50px; margin-bottom: 50px; font-family: 'Courier New'">
+            {{otherPlayerName}} disconnected. Waiting for new player.
+        </h2>
+    </div>
+    <div style="padding-top: 50px" class="col-sm-offset-3 col-sm-6" ng-hide="scoreBoardEmpty()">
+        <table class="table table-bordered">
+            <tr>
+                <th style="text-align: center">Word</th>
+                <th style="text-align: center">Round winner</th>
+            </tr>
+            <tr ng-repeat="row in scoreBoard" ng-class="getRowClass(row.winnerId)">
+                <td class="col-sm-6" style="text-align: center">{{ row.word }}</td>
+                <td class="col-sm-6" style="text-align: center">{{ row.winnerName }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="snackbar success" hidden>You won!!!</div>
+    <div class="snackbar fail" style="display: none;">You lost!!!</div>
+</div>
+<script>
+    var displaySnackBar = function (win) {
+        if (win) {
+            $('.snackbar.success').addClass('show');
+            setTimeout(function () {
+                $('.snackbar.success').removeClass('show');
+            }, 3000);
+
+        }
+        else {
+            $('.snackbar.fail').addClass('show');
+            setTimeout(function () {
+                $('.snackbar.fail').removeClass('show');
+            }, 3000);
+        }
+    }
+</script>
+</body>
+</html>
