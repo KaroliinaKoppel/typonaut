@@ -127,18 +127,21 @@
 </div>
 <script>
     var displaySnackBar = function (win) {
+        var success = new Audio('success.flac');
+        var fail = new Audio('fail.wav');
         if (win) {
             $('.snackbar.success').addClass('show');
             setTimeout(function () {
                 $('.snackbar.success').removeClass('show');
             }, 3000);
-
+            success.play();
         }
         else {
             $('.snackbar.fail').addClass('show');
             setTimeout(function () {
                 $('.snackbar.fail').removeClass('show');
             }, 3000);
+            fail.play();
         }
     }
 </script>
