@@ -1,7 +1,7 @@
 {
-  "name": "typerace",
+  "name": "typonaut",
   "version": "1.0.0",
-  "description": "Project for school",
+  "description": "Project for school. Online speedtyping game.",
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "none"
+    "url": "https://github.com/KaroliinaKoppel/Typonaut.git"
   },
   "author": "Karoliina Koppel",
   "license": "ISC",
@@ -17,7 +17,6 @@
     "angular": "^1.6.4",
     "express": "^4.15.2",
     "jquery": "^3.2.1",
-    "mongoose": "^4.9.9",
     "socket.io": "^2.0.1",
     "word-list-json": "^0.2.0"
   }
